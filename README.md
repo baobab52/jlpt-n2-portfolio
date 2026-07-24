@@ -1,2 +1,36 @@
-# jlpt-n2-portfolio
-JLPT N2 vocabulary and grammar learning web app
+# 귀에서 글자로 · JLPT N2 16주 학습앱
+
+JLPT N2 단어 720개와 문법 96개를 카드, 후리가나, 객관식 퀴즈, 오답노트, 기기 음성 낭독으로 학습하는 정적 웹앱입니다.
+
+![모바일 화면 미리보기](preview-mobile.png)
+
+## 공개판 특징
+
+- 별도 로그인 없이 접속
+- 단어 720개 · 문법 96개
+- 검수된 한국어 예문 해석
+- 오쿠리가나를 분리한 후리가나 표시
+- 단어·뜻·예문·예문 해석 연속 낭독
+- 가나 단어를 읽기 문제에서 제외한 퀴즈
+- 학습 기록과 오답은 각 방문자의 브라우저 `localStorage`에만 저장
+
+## GitHub Pages 배포
+
+1. GitHub에서 Public 저장소를 만듭니다.
+2. 이 폴더 안의 파일을 저장소 최상단에 전부 업로드합니다. ZIP 파일 자체를 올리지 않습니다.
+3. 저장소 `Settings → Pages`로 이동합니다.
+4. `Source: Deploy from a branch`, `Branch: main`, `Folder: /(root)`를 선택하고 저장합니다.
+5. 표시된 `https://아이디.github.io/저장소명/` 주소를 공유합니다.
+
+## 파일 구성
+
+- `index.html` — 화면 구조
+- `styles.css` — 디자인
+- `data.js` — 단어·문법·후리가나·검수 해석
+- `app.js` — 카드, 퀴즈, 오답, 낭독, 로컬 저장 기능
+- `.nojekyll` — GitHub Pages 정적 파일 처리
+- `preview-mobile.png` — 저장소 README용 모바일 화면 미리보기
+
+## 주의
+
+기기 음성 낭독 품질과 지원 여부는 사용자의 브라우저 및 설치된 일본어·한국어 음성에 따라 달라집니다. 학습 기록은 브라우저별로 저장되므로 다른 기기와 자동 동기화되지 않습니다.

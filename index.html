@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#18233a">
+  <meta name="description" content="JLPT N2 단어 720개와 문법 96개를 카드·퀴즈·예문 낭독으로 학습하는 16주 웹앱">
+  <meta property="og:title" content="귀에서 글자로 · JLPT N2 16주 학습앱">
+  <meta property="og:description" content="단어 720개 · 문법 96개 · 후리가나 · 예문 낭독 · 퀴즈 · 오답노트">
+  <meta property="og:type" content="website">
+  <title>귀에서 글자로 · JLPT N2 학습앱</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="loading" class="loading"><div><div class="loader"></div><p>학습 데이터를 불러오는 중입니다.</p></div></div>
+<div id="app" class="app-shell hidden">
+  <header class="topbar">
+    <button class="brand" data-go="home" type="button"><span class="brand-mark">耳</span><span><strong>귀에서 글자로</strong><small>JLPT N2 · 16주</small></span></button>
+    <div class="topbar-meta"><span id="topExamDday" class="exam-dday">시험 D-</span><span id="syncState" class="sync-state">기기 저장</span></div>
+  </header>
+
+  <main class="main-content">
+    <section id="view-home" class="view active">
+      <div class="hero-card">
+        <div><p class="eyebrow">2026년 제2회 JLPT</p><h1><span id="dDay">D-</span> · N2 합격 루틴</h1><p>한자를 보고 소리와 뜻이 3초 안에 떠오르게 만드는 16주 학습 앱입니다.</p><p class="demo-note">포트폴리오 공개판 · 학습 기록은 현재 브라우저에만 저장됩니다.</p></div>
+        <button id="continueBtn" class="primary-btn" type="button">이어서 학습</button>
+      </div>
+
+      <div class="stat-grid">
+        <button class="stat-card stat-button" data-status-list="known" type="button">
+          <span>암기완료</span><strong id="knownCount">0</strong><small>전체 학습 항목</small>
+          <div class="stat-breakdown"><b>단어 <em id="knownWordCount">0</em></b><b>문법 <em id="knownGrammarCount">0</em></b></div>
+          <div class="stat-link">학습 목록 보기 <b>›</b></div>
+        </button>
+        <button class="stat-card stat-button" data-status-list="confused" type="button">
+          <span>헷갈림</span><strong id="confusedCount">0</strong><small>복습 필요</small>
+          <div class="stat-breakdown"><b>단어 <em id="confusedWordCount">0</em></b><b>문법 <em id="confusedGrammarCount">0</em></b></div>
+          <div class="stat-link">복습 목록 보기 <b>›</b></div>
+        </button>
+        <button class="stat-card stat-button" data-status-list="mistakes" type="button">
+          <span>미해결 오답</span><strong id="mistakeCount">0</strong><small>퀴즈에서 틀린 단어</small>
+          <div class="stat-breakdown single"><b>단어 오답만 집계</b></div>
+          <div class="stat-link">오답 목록 보기 <b>›</b></div>
+        </button>
+        <article class="stat-card"><span>퀴즈 정답률</span><strong id="accuracy">-</strong><small id="quizTotal">0문제</small><div class="stat-breakdown single"><b>누적 퀴즈 통계</b></div></article>
+      </div>
+
+      <section class="panel"><div class="section-head"><div><p class="eyebrow">주차별 진도</p><h2>16주 학습 지도</h2></div><button id="resetBtn" class="text-btn danger" type="button">기록 초기화</button></div><div id="weekGrid" class="week-grid"></div></section>
+      <section class="panel"><div class="section-head"><div><p class="eyebrow">오늘의 추천</p><h2>복습할 단어·문법</h2></div></div><div id="todayReview" class="review-strip"></div></section>
+    </section>
+
+    <section id="view-study" class="view">
+      <div class="page-head"><div><p class="eyebrow">카드 학습</p><h1>주차별 단어·문법</h1></div><div class="select-row"><label>주차<select id="studyWeek"></select></label><div class="segmented"><button class="seg active" data-study-mode="words" type="button">단어</button><button class="seg" data-study-mode="grammar" type="button">문법</button></div></div></div>
+      <div id="narrationCard" class="audio-card narration-card">
+        <div class="narration-head">
+          <div><strong id="audioTitle">1주차 단어 기기 음성 낭독</strong><small id="audioStatus">일본어·한국어 음성을 확인하는 중입니다.</small></div>
+          <span id="ttsSupportBadge" class="tts-badge">확인 중</span>
+        </div>
+        <div class="voice-settings">
+          <label>일본어 음성<select id="jaVoiceSelect" aria-label="일본어 음성"></select></label>
+          <label>한국어 음성<select id="koVoiceSelect" aria-label="한국어 음성"></select></label>
+        </div>
+        <p class="narration-rule">자연 발음 → 또렷한 발음 → 뜻 → 자연 발음 → 일본어 예문 → 한국어 해석. 길이에 따라 휴식 시간이 자동으로 늘어납니다.</p>
+        <div class="audio-actions narration-actions">
+          <button id="speakCurrent" class="secondary-btn" type="button">현재 카드 듣기</button>
+          <button id="speakWeek" class="primary-btn" type="button">현재부터 연속 듣기</button>
+          <button id="stopSpeech" class="text-btn danger" type="button" disabled>정지</button>
+        </div>
+      </div>
+      <div class="study-toolbar"><span id="studyCounter">1 / 45</span><div class="mini-progress"><i id="studyProgress"></i></div><button id="shuffleBtn" class="icon-btn" type="button">순서 섞기</button></div>
+      <article id="wordCard" class="flashcard"><div class="card-front"><span id="priorityBadge" class="priority-badge">A</span><p class="card-hint">한자를 보고 읽기와 뜻을 떠올려 보세요.</p><h2 id="cardWord">補う</h2><button id="revealBtn" class="secondary-btn" type="button">뜻과 예문 보기</button></div><div id="cardAnswer" class="card-answer hidden"><p id="cardReading" class="reading"></p><p id="cardMeaning" class="meaning"></p><div class="example-box"><p id="cardExample"></p><small id="cardTranslation"></small></div><div class="rating-row"><button data-rate="unknown" class="rate unknown" type="button">모름</button><button data-rate="confused" class="rate confused" type="button">읽기 헷갈림</button><button data-rate="known" class="rate known" type="button">바로 알았음</button></div></div></article>
+      <article id="grammarCard" class="flashcard hidden"><div class="card-front"><p class="card-hint">뜻과 쓰임을 떠올려 보세요.</p><h2 id="grammarPattern"></h2><button id="grammarRevealBtn" class="secondary-btn" type="button">뜻과 예문 보기</button></div><div id="grammarAnswer" class="card-answer hidden"><p id="grammarMeaning" class="meaning"></p><div class="example-box"><p id="grammarExample"></p><small id="grammarTranslation"></small></div><div class="rating-row grammar-rating"><button data-grammar-rate="unknown" class="rate unknown" type="button">모름</button><button data-grammar-rate="confused" class="rate confused" type="button">헷갈림</button><button data-grammar-rate="known" class="rate known" type="button">알았음</button></div></div></article>
+      <div class="card-nav"><button id="prevCard" class="secondary-btn" type="button">이전</button><button id="nextCard" class="primary-btn" type="button">다음</button></div>
+    </section>
+
+    <section id="view-quiz" class="view">
+      <div class="page-head"><div><p class="eyebrow">객관식 퀴즈</p><h1>한자 읽기·뜻 훈련</h1></div></div>
+      <div id="quizSetup" class="panel quiz-setup"><label>범위<select id="quizWeek"><option value="all">전체 16주</option></select></label><label>문제 유형<select id="quizType"><option value="mixed">읽기+뜻 혼합</option><option value="reading">한자 읽기</option><option value="meaning">뜻 고르기</option></select></label><label>문제 수<select id="quizCount"><option>10</option><option>20</option><option>30</option></select></label><button id="startQuiz" class="primary-btn wide" type="button">퀴즈 시작</button></div>
+      <div id="quizPlay" class="hidden"><div class="quiz-meta"><span id="quizNumber"></span><span id="quizScore"></span></div><div class="mini-progress"><i id="quizProgress"></i></div><article class="quiz-card"><p id="quizPromptLabel" class="eyebrow"></p><h2 id="quizQuestion"></h2><div id="quizOptions" class="option-grid"></div><div id="quizExplanation" class="quiz-explanation hidden"></div><button id="nextQuiz" class="primary-btn wide hidden" type="button">다음 문제</button></article></div>
+      <div id="quizResult" class="panel result-card hidden"></div>
+    </section>
+
+    <section id="view-mistakes" class="view"><div class="page-head"><div><p class="eyebrow">오답노트</p><h1>자주 틀린 단어</h1></div><button id="clearMistakes" class="text-btn danger" type="button">오답 전체 삭제</button></div><div class="filter-bar"><button class="chip active" data-mistake-filter="all" type="button">전체</button><button class="chip" data-mistake-filter="reading" type="button">읽기</button><button class="chip" data-mistake-filter="meaning" type="button">뜻</button><button class="chip" data-mistake-filter="confused" type="button">헷갈림</button></div><div id="mistakeList" class="mistake-list"></div></section>
+  </main>
+
+  <nav class="bottom-nav"><button class="nav-item active" data-view="home" type="button"><span>⌂</span><small>홈</small></button><button class="nav-item" data-view="study" type="button"><span>字</span><small>학습</small></button><button class="nav-item" data-view="quiz" type="button"><span>✓</span><small>퀴즈</small></button><button class="nav-item" data-view="mistakes" type="button"><span>!</span><small>오답</small></button></nav>
+</div>
+
+<div id="statusSheetLayer" class="status-sheet-layer hidden" aria-hidden="true">
+  <button id="statusSheetBackdrop" class="sheet-backdrop" type="button" aria-label="목록 닫기"></button>
+  <section id="statusSheet" class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="statusSheetTitle">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><div><p id="statusSheetEyebrow" class="eyebrow"></p><h2 id="statusSheetTitle"></h2><p id="statusSheetDescription" class="sheet-description"></p></div><div class="sheet-head-actions"><span id="statusSheetCount" class="sheet-count">0개</span><button id="closeStatusSheet" class="sheet-close" type="button" aria-label="닫기">×</button></div></div>
+    <div id="statusSheetList" class="status-word-list"></div>
+  </section>
+</div>
+<div id="toast" class="toast"></div>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
