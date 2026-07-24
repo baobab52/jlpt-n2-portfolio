@@ -28,7 +28,6 @@ JLPT N2 단어 720개와 문법 96개를 카드, 후리가나, 객관식 퀴즈,
 - `data.js` — 단어·문법·후리가나·검수 해석
 - `app.js` — 카드, 퀴즈, 오답, 낭독, 로컬 저장 기능
 - `.nojekyll` — GitHub Pages 정적 파일 처리
-- `preview-mobile.png` — 저장소 README용 모바일 화면 미리보기
 
 ## 주의
 
