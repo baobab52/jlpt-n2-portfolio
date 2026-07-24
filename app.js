@@ -7,6 +7,17 @@
   const TTS_LOCAL_KEY = 'jlpt-gas-tts-v1';
   const STATE_KEY = 'jlpt-static-state-v1';
 
+  // 기기 TTS가 특정 단어를 학습자에게 불명확하게 들려주는 경우를 보정합니다.
+  // natural: 자연 낭독, clear: 모라 단위 또렷한 낭독, repeat: 마지막 반복 낭독
+  const JAPANESE_TTS_OVERRIDES = Object.freeze({
+    '補う': Object.freeze({
+      natural: '補う',
+      clear: 'お、ぎ、な、う',
+      repeat: 'おぎなう',
+      example: '不足している人員を補う。'
+    })
+  });
+
   let DATA = null;
   let WORDS = [];
   let GRAMMAR = [];
@@ -311,7 +322,86 @@
     studySelect.value = String(studyWeek);
   }
 
+
+  function enableMouseDragScroll(container) {
+    if (!container || container.dataset.mouseDragReady === 'true') return;
+
+    container.dataset.mouseDragReady = 'true';
+
+    let activePointerId = null;
+    let startX = 0;
+    let startScrollLeft = 0;
+    let moved = false;
+    let suppressNextClick = false;
+
+    const finishDrag = event => {
+      if (activePointerId === null) return;
+      if (event?.pointerId !== undefined && event.pointerId !== activePointerId) return;
+
+      if (moved) suppressNextClick = true;
+
+      try {
+        if (container.hasPointerCapture?.(activePointerId)) {
+          container.releasePointerCapture(activePointerId);
+        }
+      } catch (error) {
+        // 이미 포인터 캡처가 해제된 경우에는 무시합니다.
+      }
+
+      activePointerId = null;
+      moved = false;
+      container.classList.remove('is-dragging');
+    };
+
+    container.addEventListener('pointerdown', event => {
+      // 터치 스와이프는 브라우저의 기본 동작을 그대로 사용합니다.
+      // PC 마우스의 왼쪽 버튼만 직접 드래그 스크롤로 처리합니다.
+      if (event.pointerType !== 'mouse' || event.button !== 0) return;
+      if (container.scrollWidth <= container.clientWidth) return;
+
+      activePointerId = event.pointerId;
+      startX = event.clientX;
+      startScrollLeft = container.scrollLeft;
+      moved = false;
+
+      container.classList.add('is-dragging');
+      container.setPointerCapture?.(activePointerId);
+    });
+
+    container.addEventListener('pointermove', event => {
+      if (activePointerId === null || event.pointerId !== activePointerId) return;
+
+      const distance = event.clientX - startX;
+
+      // 작은 움직임은 카드 클릭으로 취급합니다.
+      if (!moved && Math.abs(distance) < 6) return;
+
+      moved = true;
+      event.preventDefault();
+      container.scrollLeft = startScrollLeft - distance;
+    });
+
+    container.addEventListener('pointerup', finishDrag);
+    container.addEventListener('pointercancel', finishDrag);
+    container.addEventListener('lostpointercapture', finishDrag);
+
+    container.addEventListener('click', event => {
+      if (!suppressNextClick) return;
+
+      // 드래그를 끝낸 직후 카드가 클릭되어 학습 화면으로 이동하는 것을 막습니다.
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      suppressNextClick = false;
+    }, true);
+
+    container.addEventListener('dragstart', event => {
+      event.preventDefault();
+    });
+  }
+
   function bindEvents() {
+    enableMouseDragScroll($('#todayReview'));
     $$('.nav-item').forEach(button => button.addEventListener('click', () => go(button.dataset.view)));
     $$('[data-go]').forEach(button => button.addEventListener('click', () => go(button.dataset.go)));
     $$('[data-status-list]').forEach(button => button.addEventListener('click', () => openStatusSheet(button.dataset.statusList)));
@@ -684,21 +774,33 @@
 
   function narrationData(item) {
     if (studyMode === 'words') {
+      const reading = String(item.reading || item.word).trim();
+      const override = JAPANESE_TTS_OVERRIDES[item.word] || null;
+
       return {
         label: item.word,
-        reading: String(item.reading || item.word).trim(),
+        reading,
+        naturalReading: override?.natural || reading,
+        clearReading: override?.clear || reading,
+        repeatReading: override?.repeat || reading,
         meaning: String(item.meaning || '').trim(),
-        example: rubyHtmlToReading(item.exampleRuby, item.example),
-        exampleTranslation: String(item.translation || '').trim()
+        example: override?.example || rubyHtmlToReading(item.exampleRuby, item.example),
+        exampleTranslation: String(item.translation || '').trim(),
+        pronunciationAdjusted: Boolean(override)
       };
     }
 
+    const reading = rubyHtmlToReading(item.patternRuby, item.pattern);
     return {
       label: item.pattern,
-      reading: rubyHtmlToReading(item.patternRuby, item.pattern),
+      reading,
+      naturalReading: reading,
+      clearReading: reading,
+      repeatReading: reading,
       meaning: String(item.meaning || '').trim(),
       example: rubyHtmlToReading(item.exampleRuby, item.example),
-      exampleTranslation: String(item.translation || '').trim()
+      exampleTranslation: String(item.translation || '').trim(),
+      pronunciationAdjusted: false
     };
   }
 
@@ -806,18 +908,18 @@
     const typeLabel = studyMode === 'words' ? '단어' : '문법';
 
     $('#audioStatus').textContent =
-      `${typeLabel} ${position}/${total} · ${data.label} · 단어 낭독`;
+      `${typeLabel} ${position}/${total} · ${data.label} · ${data.pronunciationAdjusted ? '발음 보정 낭독' : '단어 낭독'}`;
 
-    if (!await speakText(data.reading, 'ja-JP', jaVoice, plan.naturalRate, token)) return false;
+    if (!await speakText(data.naturalReading, 'ja-JP', jaVoice, plan.naturalRate, token)) return false;
     if (!await waitForSpeechPause(plan.afterNatural, token)) return false;
 
-    if (!await speakText(data.reading, 'ja-JP', jaVoice, plan.slowRate, token)) return false;
+    if (!await speakText(data.clearReading, 'ja-JP', jaVoice, plan.slowRate, token)) return false;
     if (!await waitForSpeechPause(plan.afterSlow, token)) return false;
 
     if (!await speakText(data.meaning, 'ko-KR', koVoice, plan.meaningRate, token)) return false;
     if (!await waitForSpeechPause(plan.afterMeaning, token)) return false;
 
-    if (!await speakText(data.reading, 'ja-JP', jaVoice, plan.naturalRate, token)) return false;
+    if (!await speakText(data.repeatReading, 'ja-JP', jaVoice, plan.naturalRate, token)) return false;
 
     if (data.example) {
       if (!await waitForSpeechPause(plan.afterRepeatBeforeExample, token)) return false;
